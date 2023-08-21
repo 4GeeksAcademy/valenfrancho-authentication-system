@@ -1,6 +1,7 @@
 const getState = ({ getStore, getActions, setStore }) => {
 	return {
 		store: {
+			token: null,
 			message: null,
 			demo: [
 				{
@@ -19,6 +20,45 @@ const getState = ({ getStore, getActions, setStore }) => {
 			// Use getActions to call a function within a fuction
 			exampleFunction: () => {
 				getActions().changeColor(0, "green");
+			},
+
+			syncTokenFromSessionStore: () => {
+				const token = sessionStorage.getItem("token");
+				if(token && token !="" && token !=undefined) setStore({ token: token });
+			},
+
+			logout: () => {
+				sessionStorage.removeItem("token");
+				setStore({ token: null });
+			},
+
+			login: async (username, password) => {
+				const opts = {
+					method: 'POST',
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify({
+						"username": username,
+						"password": password
+					})
+				}
+		
+				try{
+					const resp = await fetch('https://bug-free-space-invention-56wgwwj4j5gfpg96-3001.app.github.dev/api/token', opts)
+					if(resp.status !== 200){
+						alert("There's been an error");
+						return false;
+					}
+
+					const data = await resp.json();
+					sessionStorage.setItem("token", data.access_token);
+					setStore({ token: data.access_token });
+					return true;
+				}
+				catch(error){
+					console.error("There's been an error!");
+				}
 			},
 
 			getMessage: async () => {
